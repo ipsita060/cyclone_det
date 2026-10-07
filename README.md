@@ -1,6 +1,6 @@
 # 🌪️ Cyclone Preheater Anomaly Detection
 
-[![Anomaly Detection Pipeline](https://github.com/USERNAME/REPO_NAME/actions/workflows/anomaly_detection_pipeline.yml/badge.svg)](https://github.com/USERNAME/REPO_NAME/actions/workflows/anomaly_detection_pipeline.yml)
+[![Anomaly Detection Pipeline](https://github.com/ipsita060/cyclone_det/actions/workflows/anomaly_detection_pipeline.yml/badge.svg)](https://github.com/ipsita060/cyclone_det/actions/workflows/anomaly_detection_pipeline.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -41,7 +41,7 @@ Every push to `main` (or pull request) triggers the workflow:
 5. Bundles all output CSVs and PNG charts into a downloadable artifact (`cyclone-anomaly-detection-output`).
 
 ### 2. Manual Trigger via GitHub UI (`workflow_dispatch`)
-1. Navigate to the **Actions** tab in your GitHub repository.
+1. Navigate to the **Actions** tab in your GitHub repository: [https://github.com/ipsita060/cyclone_det/actions](https://github.com/ipsita060/cyclone_det/actions).
 2. Select **Cyclone Preheater Anomaly Detection Pipeline** from the left sidebar.
 3. Click **Run workflow** dropdown and select the branch.
 4. Click **Run workflow**.
@@ -52,8 +52,8 @@ Every push to `main` (or pull request) triggers the workflow:
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/ipsita060/cyclone_det.git
+cd cyclone_det
 ```
 
 ### 2. Create and activate a Virtual Environment
