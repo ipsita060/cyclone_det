@@ -28,23 +28,28 @@ It analyzes ~3.5 years of 5-minute telemetry data (2017–2020, ~600,000+ data p
 
 ---
 
-## 🚀 GitHub Actions Deployment & Automated Runs
+## 🌐 Live Web App Deployment (Streamlit & Render)
 
-This repository is configured with **GitHub Actions** to automatically run anomaly detection, render diagnostic charts, and publish downloadable artifacts on every commit or on-demand.
+### Option A: Streamlit Community Cloud (Recommended — Free & Instant)
+1. Go to **[share.streamlit.io](https://share.streamlit.io)** and log in with your GitHub account (`ipsita060`).
+2. Click **"New app"**.
+3. Select:
+   - **Repository:** `ipsita060/cyclone_det`
+   - **Branch:** `main`
+   - **Main file path:** `app.py`
+4. Click **"Deploy!"**. Your app will be live with a public URL in ~1 minute.
 
-### 1. Automated Runs on Push / PR
-Every push to `main` (or pull request) triggers the workflow:
-1. Provisions an Ubuntu Python environment.
-2. Installs dependencies from `requirements.txt`.
-3. Runs `anomaly_detection.py` on the dataset.
-4. Publishes a **Markdown summary table** directly into the GitHub Actions run summary.
-5. Bundles all output CSVs and PNG charts into a downloadable artifact (`cyclone-anomaly-detection-output`).
+---
 
-### 2. Manual Trigger via GitHub UI (`workflow_dispatch`)
-1. Navigate to the **Actions** tab in your GitHub repository: [https://github.com/ipsita060/cyclone_det/actions](https://github.com/ipsita060/cyclone_det/actions).
-2. Select **Cyclone Preheater Anomaly Detection Pipeline** from the left sidebar.
-3. Click **Run workflow** dropdown and select the branch.
-4. Click **Run workflow**.
+### Option B: Render (Free Web Service)
+1. Go to **[render.com](https://render.com)** and log in with GitHub.
+2. Click **New +** → **Web Service**.
+3. Connect your repository `ipsita060/cyclone_det`.
+4. Render will automatically detect [`render.yaml`](render.yaml) or you can set:
+   - **Environment:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`
+5. Click **Create Web Service**.
 
 ---
 
