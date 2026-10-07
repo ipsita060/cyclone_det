@@ -39,7 +39,13 @@ def load_and_clean_data(file_source):
     else:
         df = pd.read_csv(file_source)
         
-    df["time"] = pd.to_datetime(df["time"], errors="coerce", dayfirst=True, format="mixed")
+    # Fast vectorized datetime parsing
+    parsed_time = pd.to_datetime(df["time"], format="%d-%m-%Y %H:%M", errors="coerce")
+    nat_mask = parsed_time.isna()
+    if nat_mask.any():
+        parsed_time[nat_mask] = pd.to_datetime(df["time"][nat_mask], errors="coerce", dayfirst=True, format="mixed")
+    df["time"] = parsed_time
+
     for c in SENSORS:
         if c in df.columns:
             df[c] = pd.to_numeric(df[c], errors="coerce")
@@ -82,7 +88,7 @@ def run_anomaly_pipeline(df, ml_quantile=0.997, shift_quantile=0.997):
         & (previous_draft < normal_draft_median)
     )
     
-    # 4. Isolation Forest
+    # 4. Fast Isolation Forest
     features = (
         SENSORS
         + ["dP_inlet_cone", "dP_cone_outlet", "dT_gas"]
@@ -91,31 +97,38 @@ def run_anomaly_pipeline(df, ml_quantile=0.997, shift_quantile=0.997):
     
     X = df[features].replace([np.inf, -np.inf], np.nan)
     X = X.interpolate(limit=3).ffill().bfill()
-    X = X.clip(X.quantile(0.005), X.quantile(0.995), axis=1)
+    q005 = X.quantile(0.005)
+    q995 = X.quantile(0.995)
+    X = X.clip(q005, q995, axis=1)
     X_scaled = RobustScaler().fit_transform(X)
     
     model = IsolationForest(
-        n_estimators=150,
-        max_samples=2048,
+        n_estimators=100,
+        max_samples=1024,
         contamination="auto",
         random_state=42,
         n_jobs=-1
     )
-    model.fit(X_scaled)
+    # Subsampled fast fitting
+    fit_sample_size = min(50000, len(X_scaled))
+    rng = np.random.RandomState(42)
+    fit_idx = rng.choice(len(X_scaled), size=fit_sample_size, replace=False)
+    model.fit(X_scaled[fit_idx])
     
     df["ml_score"] = -model.decision_function(X_scaled)
     ml_threshold = df["ml_score"].quantile(ml_quantile)
     df["ml_anomaly"] = df["ml_score"] >= ml_threshold
     
-    # 5. Sustained Shift
-    shift_scores = pd.DataFrame(index=df.index)
+    # 5. Fast Sustained Shift (Vectorized)
+    shift_scores = np.zeros(len(df))
     for c in SENSORS:
-        short = df[c].rolling(12, min_periods=8).mean()
-        long = df[c].rolling(72, min_periods=36).mean()
-        std = df[c].rolling(72, min_periods=36).std()
-        shift_scores[c] = (short - long).abs() / (std + 1e-6)
+        short = df[c].rolling(12, min_periods=8).mean().to_numpy()
+        long = df[c].rolling(72, min_periods=36).mean().to_numpy()
+        std = df[c].rolling(72, min_periods=36).std().to_numpy()
+        score = np.abs(short - long) / (std + 1e-6)
+        shift_scores = np.maximum(shift_scores, np.nan_to_num(score, 0))
         
-    df["shift_score"] = shift_scores.max(axis=1)
+    df["shift_score"] = shift_scores
     shift_threshold = df["shift_score"].quantile(shift_quantile)
     df["sustained_shift"] = df["shift_score"] >= shift_threshold
     
@@ -125,10 +138,11 @@ def run_anomaly_pipeline(df, ml_quantile=0.997, shift_quantile=0.997):
         & ~df["frozen_values"]
     )
     
-    # 6. Group into Events
+    # 6. Fast Group into Events
     def get_events(mask, label, evidence, min_points):
         vals = mask.fillna(False).to_numpy()
         times = df["time"].to_numpy()
+        ml_scores = df["ml_score"].to_numpy()
         events = []
         i = 0
         while i < len(vals):
@@ -144,10 +158,10 @@ def run_anomaly_pipeline(df, ml_quantile=0.997, shift_quantile=0.997):
             ):
                 end += 1
             if end - start + 1 >= min_points:
-                st_time = df.loc[start, "time"]
-                et_time = df.loc[end, "time"]
+                st_time = pd.Timestamp(times[start])
+                et_time = pd.Timestamp(times[end])
                 dur = (et_time - st_time).total_seconds() / 60 + 5
-                score = df.loc[start:end, "ml_score"].max()
+                score = np.nanmax(ml_scores[start:end+1])
                 events.append({
                     "Anomaly Class": label,
                     "Start Time": st_time,
