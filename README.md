@@ -41,15 +41,6 @@ It analyzes ~3.5 years of 5-minute telemetry data (2017–2020, ~600,000+ data p
 
 ---
 
-### Option B: Render (Free Web Service)
-1. Go to **[render.com](https://render.com)** and log in with GitHub.
-2. Click **New +** → **Web Service**.
-3. Connect your repository `ipsita060/cyclone_det`.
-4. Render will automatically detect [`render.yaml`](render.yaml) or you can set:
-   - **Environment:** `Python 3`
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`
-5. Click **Create Web Service**.
 
 ---
 
