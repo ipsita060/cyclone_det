@@ -1,0 +1,35 @@
+# ============================================================
+# Requirements for: Cyclone Preheater Anomaly Detection
+# Author : Ipsita Jash
+# Python : 3.13+
+# Install: pip install -r requirements.txt
+# ============================================================
+
+# ---------- Core dependencies ----------
+pandas==2.2.3          # data loading, time-series manipulation, CSV export
+numpy==2.1.1           # numerical operations, array handling
+matplotlib==3.10.1     # all plots (timeline, bar charts, event detail panels)
+scikit-learn==1.5.2    # IsolationForest anomaly detection, RobustScaler
+tabulate==0.10.0       # formatted table output in terminal (fancy_grid)
+
+# ---------- pandas dependencies ----------
+python-dateutil==2.9.0.post0   # flexible date parsing (mixed date formats)
+pytz==2025.1                   # timezone support
+tzdata==2025.1                 # IANA timezone database
+
+# ---------- matplotlib dependencies ----------
+contourpy==1.3.1       # contour plotting support
+cycler==0.12.1         # colour cycle helper for multi-line plots
+fonttools==4.57.0      # font handling for plot labels and titles
+kiwisolver==1.4.8      # constraint solver for tight_layout
+packaging==24.2        # version parsing utilities
+pillow==11.1.0         # image read/write (PNG save for all graphs)
+pyparsing==3.2.3       # expression parsing
+
+# ---------- scikit-learn dependencies ----------
+scipy==1.17.0          # scientific computing (used internally by sklearn)
+joblib==1.5.3          # parallel processing (n_jobs=-1 in IsolationForest)
+threadpoolctl==3.6.0   # thread pool management for parallel training
+
+# ---------- shared transitive ----------
+six==1.17.0            # Python 2/3 compatibility layer (used by dateutil)

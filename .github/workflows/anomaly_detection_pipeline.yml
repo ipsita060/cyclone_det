@@ -1,0 +1,61 @@
+name: Cyclone Preheater Anomaly Detection Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+    inputs:
+      data_file:
+        description: "Dataset CSV path"
+        required: false
+        default: "Data (1).csv"
+
+jobs:
+  run-anomaly-detection:
+    name: Run Anomaly Detection & Generate Reports
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Anomaly Detection Script
+        run: |
+          DATA_FILE="${{ github.event.inputs.data_file || 'Data (1).csv' }}"
+          python anomaly_detection.py "$DATA_FILE"
+
+      - name: Publish Summary to GitHub Step Summary
+        if: always()
+        run: |
+          if [ -f "cyclone_output/anomaly_summary.csv" ]; then
+            echo "### 🌪️ Cyclone Preheater Anomaly Detection Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Anomaly Class | Number of Events | Total Duration (Hours) | First Detected | Last Detected |" >> $GITHUB_STEP_SUMMARY
+            echo "| --- | --- | --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
+            tail -n +2 cyclone_output/anomaly_summary.csv | while IFS=, read -r cls events dur first last; do
+              echo "| $cls | $events | $dur | $first | $last |" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **All plots and detailed CSV reports generated successfully.** Download the workflow artifact below to view full graphs and zoom panels." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Output Artifacts (CSVs & Plots)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cyclone-anomaly-detection-output
+          path: cyclone_output/
+          retention-days: 30
