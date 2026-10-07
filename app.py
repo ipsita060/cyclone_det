@@ -390,7 +390,7 @@ with tab3:
 # TAB 4: ABOUT
 with tab4:
     st.subheader("Sensors & Anomaly Rules Reference")
-    st.markdown("""
+    st.markdown(r"""
     ### 📡 Telemetry Sensors
     - **`Cyclone_Inlet_Gas_Temp`**: Temperature of gas entering the preheater cyclone.
     - **`Cyclone_Gas_Outlet_Temp`**: Temperature of gas leaving the cyclone.
